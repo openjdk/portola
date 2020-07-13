@@ -470,9 +470,9 @@ private:
                             p2i(obj), p2i(p), bytes,
                             MetaspaceObj::type_name(ref->msotype()));
     memcpy(p, obj, bytes);
-    intptr_t* cloned_vtable = MetaspaceShared::fix_cpp_vtable_for_dynamic_archive(ref->msotype(), p);
-    if (cloned_vtable != NULL) {
-      update_pointer((address*)p, (address)cloned_vtable, "vtb", 0, /*is_mso_pointer*/false);
+    intptr_t* archived_vtable = MetaspaceShared::get_archived_cpp_vtable(ref->msotype(), p);
+    if (archived_vtable != NULL) {
+      update_pointer((address*)p, (address)archived_vtable, "vtb", 0, /*is_mso_pointer*/false);
       mark_pointer((address*)p);
     }
 
@@ -521,8 +521,8 @@ private:
 
 public:
   DynamicArchiveBuilder() {
-    _klasses = new (ResourceObj::C_HEAP, mtClass) GrowableArray<InstanceKlass*>(100, true, mtInternal);
-    _symbols = new (ResourceObj::C_HEAP, mtClass) GrowableArray<Symbol*>(1000, true, mtInternal);
+    _klasses = new (ResourceObj::C_HEAP, mtClass) GrowableArray<InstanceKlass*>(100, mtClass);
+    _symbols = new (ResourceObj::C_HEAP, mtClass) GrowableArray<Symbol*>(1000, mtClass);
 
     _estimated_metsapceobj_bytes = 0;
     _estimated_hashtable_bytes = 0;

@@ -107,6 +107,7 @@ innerclass innerClass java/lang/invoke/MethodHandles$Lookup outerClass java/lang
 innerclass innerClass java/lang/invoke/MethodHandles$Lookup$ClassOption outerClass java/lang/invoke/MethodHandles$Lookup innerClassName ClassOption flags 4019
 innerclass innerClass java/lang/invoke/VarHandle$AccessMode outerClass java/lang/invoke/VarHandle innerClassName AccessMode flags 4019
 method name defineHiddenClass descriptor ([BZ[Ljava/lang/invoke/MethodHandles$Lookup$ClassOption;)Ljava/lang/invoke/MethodHandles$Lookup; thrownTypes java/lang/IllegalAccessException flags 81
+method name ensureInitialized descriptor (Ljava/lang/Class;)Ljava/lang/Class; thrownTypes java/lang/IllegalAccessException flags 1 signature (Ljava/lang/Class<*>;)Ljava/lang/Class<*>;
 
 class name java/lang/invoke/MethodHandles$Lookup$ClassOption
 header extends java/lang/Enum nestHost java/lang/invoke/MethodHandles flags 4031 signature Ljava/lang/Enum<Ljava/lang/invoke/MethodHandles$Lookup$ClassOption;>;
@@ -180,6 +181,20 @@ method name open descriptor (Ljava/net/ProtocolFamily;)Ljava/nio/channels/Socket
 class name java/nio/channels/spi/SelectorProvider
 method name openSocketChannel descriptor (Ljava/net/ProtocolFamily;)Ljava/nio/channels/SocketChannel; thrownTypes java/io/IOException flags 1
 method name openServerSocketChannel descriptor (Ljava/net/ProtocolFamily;)Ljava/nio/channels/ServerSocketChannel; thrownTypes java/io/IOException flags 1
+
+class name java/security/KeyStore
+header extends java/lang/Object nestMembers java/security/KeyStore$Builder,java/security/KeyStore$TrustedCertificateEntry,java/security/KeyStore$SecretKeyEntry,java/security/KeyStore$PrivateKeyEntry,java/security/KeyStore$Entry,java/security/KeyStore$Entry$Attribute,java/security/KeyStore$CallbackHandlerProtection,java/security/KeyStore$PasswordProtection,java/security/KeyStore$ProtectionParameter,java/security/KeyStore$LoadStoreParameter flags 21
+innerclass innerClass java/security/KeyStore$LoadStoreParameter outerClass java/security/KeyStore innerClassName LoadStoreParameter flags 609
+innerclass innerClass java/security/KeyStore$ProtectionParameter outerClass java/security/KeyStore innerClassName ProtectionParameter flags 609
+innerclass innerClass java/security/KeyStore$Entry outerClass java/security/KeyStore innerClassName Entry flags 609
+innerclass innerClass java/security/Provider$Service outerClass java/security/Provider innerClassName Service flags 9
+innerclass innerClass java/security/KeyStore$Builder outerClass java/security/KeyStore innerClassName Builder flags 409
+innerclass innerClass java/security/KeyStore$TrustedCertificateEntry outerClass java/security/KeyStore innerClassName TrustedCertificateEntry flags 19
+innerclass innerClass java/security/KeyStore$SecretKeyEntry outerClass java/security/KeyStore innerClassName SecretKeyEntry flags 19
+innerclass innerClass java/security/KeyStore$PrivateKeyEntry outerClass java/security/KeyStore innerClassName PrivateKeyEntry flags 19
+innerclass innerClass java/security/KeyStore$CallbackHandlerProtection outerClass java/security/KeyStore innerClassName CallbackHandlerProtection flags 9
+innerclass innerClass java/security/KeyStore$PasswordProtection outerClass java/security/KeyStore innerClassName PasswordProtection flags 9
+innerclass innerClass java/security/KeyStore$Entry$Attribute outerClass java/security/KeyStore$Entry innerClassName Attribute flags 609
 
 class name java/security/interfaces/EdECKey
 header extends java/lang/Object flags 601
