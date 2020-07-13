@@ -262,9 +262,6 @@ const size_t minimumSymbolTableSize = 1024;
           "A thread requesting compilation is not blocked during "          \
           "compilation")                                                    \
                                                                             \
-  product(bool, PrintVMQWaitTime, false,                                    \
-          "(Deprecated) Print out the waiting time in VM operation queue")  \
-                                                                            \
   product(bool, MethodFlushing, true,                                       \
           "Reclamation of zombie and not-entrant methods")                  \
                                                                             \
@@ -352,6 +349,10 @@ const size_t minimumSymbolTableSize = 1024;
                                                                             \
   diagnostic(ccstrlist, DisableIntrinsic, "",                               \
          "do not expand intrinsics whose (internal) names appear here")     \
+                                                                            \
+  diagnostic(ccstrlist, ControlIntrinsic, "",                               \
+         "Control intrinsics using a list of +/- (internal) names, "        \
+         "separated by commas")                                             \
                                                                             \
   develop(bool, TraceCallFixup, false,                                      \
           "Trace all call fixups")                                          \
@@ -537,6 +538,10 @@ const size_t minimumSymbolTableSize = 1024;
   product(bool, PrintCompilation, false,                                    \
           "Print compilations")                                             \
                                                                             \
+  diagnostic(intx, RepeatCompilation, 0,                                    \
+          "Repeat compilation without installing code (number of times)")   \
+          range(0, max_jint)                                                 \
+                                                                            \
   product(bool, PrintExtendedThreadInfo, false,                             \
           "Print more information in thread dump")                          \
                                                                             \
@@ -617,7 +622,7 @@ const size_t minimumSymbolTableSize = 1024;
   product(bool, OmitStackTraceInFastThrow, true,                            \
           "Omit backtraces for some 'hot' exceptions in optimized code")    \
                                                                             \
-  manageable(bool, ShowCodeDetailsInExceptionMessages, false,               \
+  manageable(bool, ShowCodeDetailsInExceptionMessages, true,                \
           "Show exception messages from RuntimeExceptions that contain "    \
           "snippets of the failing code. Disable this to improve privacy.") \
                                                                             \
