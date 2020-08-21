@@ -191,9 +191,6 @@ const size_t minimumSymbolTableSize = 1024;
           "Granularity to use for NUMA interleaving on Windows OS")         \
           range(os::vm_allocation_granularity(), NOT_LP64(2*G) LP64_ONLY(8192*G)) \
                                                                             \
-  product(bool, ForceNUMA, false,                                           \
-          "(Deprecated) Force NUMA optimizations on single-node/UMA systems") \
-                                                                            \
   product(uintx, NUMAChunkResizeWeight, 20,                                 \
           "Percentage (0-100) used to weight the current sample when "      \
           "computing exponentially decaying average for "                   \
@@ -322,6 +319,9 @@ const size_t minimumSymbolTableSize = 1024;
                                                                             \
   diagnostic(bool, UseAESCTRIntrinsics, false,                              \
           "Use intrinsics for the paralleled version of AES/CTR crypto")    \
+                                                                            \
+  diagnostic(bool, UseMD5Intrinsics, false,                                 \
+          "Use intrinsics for MD5 crypto hash function")                    \
                                                                             \
   diagnostic(bool, UseSHA1Intrinsics, false,                                \
           "Use intrinsics for SHA-1 crypto hash function. "                 \
@@ -688,9 +688,6 @@ const size_t minimumSymbolTableSize = 1024;
                "Disable the use of stack guard pages if the JVM is loaded " \
                "on the primordial process thread")                          \
                                                                             \
-  diagnostic(bool, AsyncDeflateIdleMonitors, true,                          \
-          "Deflate idle monitors using the ServiceThread.")                 \
-                                                                            \
   /* notice: the max range value here is max_jint, not max_intx  */         \
   /* because of overflow issue                                   */         \
   diagnostic(intx, AsyncDeflationInterval, 250,                             \
@@ -871,7 +868,7 @@ const size_t minimumSymbolTableSize = 1024;
           "Time calls to GenerateOopMap::compute_map() individually")       \
                                                                             \
   develop(bool, TraceOopMapRewrites, false,                                 \
-          "Trace rewriting of method oops during oop map generation")       \
+          "Trace rewriting of methods during oop map generation")           \
                                                                             \
   develop(bool, TraceICBuffer, false,                                       \
           "Trace usage of IC buffer")                                       \
@@ -2454,9 +2451,6 @@ const size_t minimumSymbolTableSize = 1024;
                                                                             \
   experimental(bool, UseFastUnorderedTimeStamps, false,                     \
           "Use platform unstable time where supported for timestamps only") \
-                                                                            \
-  product(bool, UseNewFieldLayout, true,                                    \
-               "(Deprecated) Use new algorithm to compute field layouts")   \
                                                                             \
   product(bool, UseEmptySlotsInSupers, true,                                \
                 "Allow allocating fields in empty slots of super-classes")  \
