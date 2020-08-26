@@ -153,8 +153,8 @@ int (*os::Linux::_pthread_setname_np)(pthread_t, const char*) = NULL;
 pthread_t os::Linux::_main_thread;
 int os::Linux::_page_size = -1;
 bool os::Linux::_supports_fast_thread_cpu_time = false;
-const char * os::Linux::_glibc_version = "unknown";
-const char * os::Linux::_libpthread_version = "unknown";
+const char * os::Linux::_libc_version = NULL;
+const char * os::Linux::_libpthread_version = NULL;
 size_t os::Linux::_default_large_page_size = 0;
 
 static jlong initial_time_count=0;
@@ -607,21 +607,24 @@ void os::Linux::libpthread_init() {
   #error "glibc too old (< 2.3.2)"
 #endif
 
-  size_t n;
-
-  n = confstr(_CS_GNU_LIBC_VERSION, NULL, 0);
-  if (n > 0) {
-    char* str = (char *)malloc(n, mtInternal);
-    confstr(_CS_GNU_LIBC_VERSION, str, n);
-    os::Linux::set_glibc_version(str);
-  }
+#ifdef MUSL_LIBC
+  // confstr() from musl libc returns EINVAL for
+  // _CS_GNU_LIBC_VERSION and _CS_GNU_LIBPTHREAD_VERSION
+  os::Linux::set_libc_version("unknown");
+  os::Linux::set_libpthread_version("unknown");
+#else
+  size_t n = confstr(_CS_GNU_LIBC_VERSION, NULL, 0);
+  assert(n > 0, "cannot retrieve glibc version");
+  char *str = (char *)malloc(n, mtInternal);
+  confstr(_CS_GNU_LIBC_VERSION, str, n);
+  os::Linux::set_libc_version(str);
 
   n = confstr(_CS_GNU_LIBPTHREAD_VERSION, NULL, 0);
-  if (n > 0) {
-    char* str = (char *)malloc(n, mtInternal);
-    confstr(_CS_GNU_LIBPTHREAD_VERSION, str, n);
-    os::Linux::set_libpthread_version(str);
-  }
+  assert(n > 0, "cannot retrieve pthread version");
+  str = (char *)malloc(n, mtInternal);
+  confstr(_CS_GNU_LIBPTHREAD_VERSION, str, n);
+  os::Linux::set_libpthread_version(str);
+#endif
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -2319,7 +2322,7 @@ void os::get_summary_os_info(char* buf, size_t buflen) {
 void os::Linux::print_libversion_info(outputStream* st) {
   // libc, pthread
   st->print("libc: ");
-  st->print("%s ", os::Linux::glibc_version());
+  st->print("%s ", os::Linux::libc_version());
   st->print("%s ", os::Linux::libpthread_version());
   st->cr();
 }
@@ -5486,7 +5489,7 @@ jint os::init_2(void) {
   Linux::libpthread_init();
   Linux::sched_getcpu_init();
   log_info(os)("HotSpot is running with %s, %s",
-               Linux::glibc_version(), Linux::libpthread_version());
+               Linux::libc_version(), Linux::libpthread_version());
 
   if (UseNUMA || UseNUMAInterleaving) {
     Linux::numa_init();
