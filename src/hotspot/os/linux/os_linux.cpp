@@ -5259,10 +5259,9 @@ extern void report_error(char* file_name, int line_no, char* title,
                          char* format, ...);
 
 // Some linux distributions (notably: Alpine Linux) include the
-// grsecurity in the kernel by default. Of particular interest from a
-// JVM perspective is PaX (https://pax.grsecurity.net/), which adds
-// some security features related to page attributes. Specifically,
-// the MPROTECT PaX functionality
+// grsecurity in the kernel. Of particular interest from a JVM perspective
+// is PaX (https://pax.grsecurity.net/), which adds some security features
+// related to page attributes. Specifically, the MPROTECT PaX functionality
 // (https://pax.grsecurity.net/docs/mprotect.txt) prevents dynamic
 // code generation by disallowing a (previously) writable page to be
 // marked as executable. This is, of course, exactly what HotSpot does
@@ -5278,11 +5277,13 @@ static void check_pax(void) {
 
   void* p = ::mmap(NULL, size, PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
   if (p == MAP_FAILED) {
+    log_debug(os)("os_linux.cpp: check_pax: mmap failed (%s)" , os::strerror(errno));
     vm_exit_out_of_memory(size, OOM_MMAP_ERROR, "failed to allocate memory for PaX check.");
   }
 
   int res = ::mprotect(p, size, PROT_WRITE|PROT_EXEC);
   if (res == -1) {
+    log_debug(os)("os_linux.cpp: check_pax: mprotect failed (%s)" , os::strerror(errno));
     vm_exit_during_initialization("Failed to mark memory page as executable",
                                   "Please check if grsecurity/PaX is enabled in your kernel.\n"
                                   "\n"
