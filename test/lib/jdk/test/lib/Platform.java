@@ -109,6 +109,21 @@ public class Platform {
         return isOs("linux");
     }
 
+    public static boolean isBusybox(String tool) {
+        try {
+
+            Path busybox = Paths.get("/bin/busybox");
+            Path toolpath = Paths.get(tool);
+
+            return !isWindows()
+                    && Files.exists(busybox)
+                    && Files.isSymbolicLink(toolpath)
+                    && busybox.equals(Files.readSymbolicLink(toolpath));
+        } catch (IOException ignore) {
+            return false;
+        }
+    }
+
     public static boolean isOSX() {
         return isOs("mac");
     }
