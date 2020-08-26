@@ -207,6 +207,7 @@ class Linux {
 
   typedef int (*sched_getcpu_func_t)(void);
   typedef int (*numa_node_to_cpus_func_t)(int node, unsigned long *buffer, int bufferlen);
+  typedef int (*numa_node_to_cpus_v2_func_t)(int node, void *mask);
   typedef int (*numa_max_node_func_t)(void);
   typedef int (*numa_num_configured_nodes_func_t)(void);
   typedef int (*numa_available_func_t)(void);
@@ -223,6 +224,7 @@ class Linux {
 
   static sched_getcpu_func_t _sched_getcpu;
   static numa_node_to_cpus_func_t _numa_node_to_cpus;
+  static numa_node_to_cpus_v2_func_t _numa_node_to_cpus_v2;
   static numa_max_node_func_t _numa_max_node;
   static numa_num_configured_nodes_func_t _numa_num_configured_nodes;
   static numa_available_func_t _numa_available;
@@ -244,6 +246,7 @@ class Linux {
 
   static void set_sched_getcpu(sched_getcpu_func_t func) { _sched_getcpu = func; }
   static void set_numa_node_to_cpus(numa_node_to_cpus_func_t func) { _numa_node_to_cpus = func; }
+  static void set_numa_node_to_cpus_v2(numa_node_to_cpus_v2_func_t func) { _numa_node_to_cpus_v2 = func; }
   static void set_numa_max_node(numa_max_node_func_t func) { _numa_max_node = func; }
   static void set_numa_num_configured_nodes(numa_num_configured_nodes_func_t func) { _numa_num_configured_nodes = func; }
   static void set_numa_available(numa_available_func_t func) { _numa_available = func; }
@@ -274,7 +277,23 @@ class Linux {
  public:
   static int sched_getcpu()  { return _sched_getcpu != NULL ? _sched_getcpu() : -1; }
   static int numa_node_to_cpus(int node, unsigned long *buffer, int bufferlen) {
-    return _numa_node_to_cpus != NULL ? _numa_node_to_cpus(node, buffer, bufferlen) : -1;
+    // use the latest version of numa_node_to_cpus if available
+    if (_numa_node_to_cpus_v2 != NULL) {
+
+      // libnuma bitmask struct
+      struct bitmask {
+        unsigned long size; /* number of bits in the map */
+        unsigned long *maskp;
+      };
+
+      struct bitmask mask;
+      mask.maskp = (unsigned long *)buffer;
+      mask.size = bufferlen * 8;
+      return _numa_node_to_cpus_v2(node, &mask);
+    } else if (_numa_node_to_cpus != NULL) {
+      return _numa_node_to_cpus(node, buffer, bufferlen);
+    }
+    return -1;
   }
   static int numa_max_node() { return _numa_max_node != NULL ? _numa_max_node() : -1; }
   static int numa_num_configured_nodes() {
