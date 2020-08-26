@@ -373,10 +373,6 @@ static bool read_lib_segments(struct ps_prochandle* ph, int lib_fd, ELF_EHDR* li
   ELF_PHDR* phbuf;
   ELF_PHDR* lib_php = NULL;
 
-#ifndef LIBC
-#error "LIBC not set"
-#endif
-
   int page_size = sysconf(_SC_PAGE_SIZE);
 
   if ((phbuf = read_program_header_table(lib_fd, lib_ehdr)) == NULL) {
@@ -411,8 +407,8 @@ static bool read_lib_segments(struct ps_prochandle* ph, int lib_fd, ELF_EHDR* li
         //
         // Coredump stores value of p_memsz elf field
         // rounded up to page boundary.
-        if ((strcmp(LIBC, "musl")) &&
-            (existing_map->memsz != page_size) &&
+#ifndef MUSL_LIBC
+        if ((existing_map->memsz != page_size) &&
             (existing_map->fd != lib_fd) &&
             (ROUNDUP(existing_map->memsz, page_size) != ROUNDUP(lib_php->p_memsz, page_size))) {
 
@@ -420,7 +416,7 @@ static bool read_lib_segments(struct ps_prochandle* ph, int lib_fd, ELF_EHDR* li
                         target_vaddr, existing_map->memsz, lib_php->p_memsz, lib_php->p_flags);
           goto err;
         }
-
+#endif
         /* replace PT_LOAD segment with library segment */
         print_debug("overwrote with new address mapping (memsz %ld -> %ld)\n",
                      existing_map->memsz, ROUNDUP(lib_php->p_memsz, page_size));
