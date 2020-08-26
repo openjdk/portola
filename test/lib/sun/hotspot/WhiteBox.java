@@ -618,4 +618,7 @@ public class WhiteBox {
 
   // ThreadSMR GC safety check for threadObj
   public native void checkThreadObjOfTerminatingThread(Thread target);
+
+  // libc name
+  public native String getLibcName();
 }

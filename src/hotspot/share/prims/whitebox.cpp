@@ -2282,6 +2282,18 @@ WB_ENTRY(void, WB_CheckThreadObjOfTerminatingThread(JNIEnv* env, jobject wb, job
   }
 WB_END
 
+WB_ENTRY(jstring, WB_GetLibcName(JNIEnv* env, jobject o))
+  ThreadToNativeFromVM ttn(thread);
+#ifdef MUSL_LIBC
+  jstring info_string = env->NewStringUTF("musl");
+#else
+  jstring info_string = env->NewStringUTF("glibc");
+#endif
+  CHECK_JNI_EXCEPTION_(env, NULL);
+
+  return info_string;
+WB_END
+
 #define CC (char*)
 
 static JNINativeMethod methods[] = {
@@ -2533,6 +2545,7 @@ static JNINativeMethod methods[] = {
   {CC"protectionDomainRemovedCount",   CC"()I",       (void*)&WB_ProtectionDomainRemovedCount },
   {CC"aotLibrariesCount", CC"()I",                    (void*)&WB_AotLibrariesCount },
   {CC"getKlassMetadataSize", CC"(Ljava/lang/Class;)I",(void*)&WB_GetKlassMetadataSize},
+  {CC"getLibcName",          CC"()Ljava/lang/String;",(void*)&WB_GetLibcName},
 };
 
 
