@@ -28,7 +28,9 @@
  *          LD_LIBRARY_PATH environment variable on Unixes
  * @library /test/lib
  * @compile -XDignore.symbol.file ExecutionEnvironment.java Test7029048.java
- * @run main Test7029048
+ * @build sun.hotspot.WhiteBox
+ * @run driver ClassFileInstaller sun.hotspot.WhiteBox
+ * @run main/othervm -Xbootclasspath/a:. -XX:+UnlockDiagnosticVMOptions -XX:+WhiteBoxAPI Test7029048
  */
 
 import java.io.File;
@@ -39,7 +41,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import sun.hotspot.WhiteBox;
+
 public class Test7029048 extends TestHelper {
+
+    private static final boolean isMusl =
+            WhiteBox.getWhiteBox().getLibcName().contains("musl");
+    private static final boolean isExpandedLoadLibraryPath =
+            TestHelper.isAIX || isMusl;
 
     private static final String LIBJVM = ExecutionEnvironment.LIBJVM;
     private static final String LD_LIBRARY_PATH =
@@ -155,7 +164,7 @@ public class Test7029048 extends TestHelper {
                     }
 
                     desc = "LD_LIBRARY_PATH should not be set (no libjvm.so)";
-                    if (TestHelper.isExpandedSharedLibraryPath) {
+                    if (isExpandedLoadLibraryPath) {
                         printSkipMessage(desc);
                         continue;
                     }
@@ -165,7 +174,7 @@ public class Test7029048 extends TestHelper {
                         recursiveDelete(dstLibDir);
                     }
                     desc = "LD_LIBRARY_PATH should not be set (no directory)";
-                    if (TestHelper.isExpandedSharedLibraryPath) {
+                    if (isExpandedLoadLibraryPath) {
                         printSkipMessage(desc);
                         continue;
                     }
@@ -193,8 +202,8 @@ public class Test7029048 extends TestHelper {
     }
 
     private static void printSkipMessage(String description) {
-        System.out.printf("Skipping test case '%s' because the Aix launcher" +
-                          " adds the paths in any case.%n", description);
+        System.out.printf("Skipping test case '%s' because the Aix and musl launchers" +
+                          " add the paths in any case.%n", description);
     }
 
     public static void main(String... args) throws Exception {

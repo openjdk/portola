@@ -29,7 +29,12 @@
  * @modules jdk.compiler
  *          jdk.zipfs
  * @compile -XDignore.symbol.file ExecutionEnvironment.java
- * @run main/othervm ExecutionEnvironment
+ * @build sun.hotspot.WhiteBox
+ * @run driver ClassFileInstaller sun.hotspot.WhiteBox
+ * @run main/othervm -Xbootclasspath/a:.
+ *                   -XX:+UnlockDiagnosticVMOptions
+ *                   -XX:+WhiteBoxAPI
+ *                   ExecutionEnvironment
  */
 
 /*
@@ -65,6 +70,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import sun.hotspot.WhiteBox;
+
 public class ExecutionEnvironment extends TestHelper {
     static final String LD_LIBRARY_PATH    = Platform.sharedLibraryPathVariableName();
     static final String LD_LIBRARY_PATH_32 = LD_LIBRARY_PATH + "_32";
@@ -82,6 +89,11 @@ public class ExecutionEnvironment extends TestHelper {
     };
 
     static final File testJarFile = new File("EcoFriendly.jar");
+
+    private static final boolean isMusl =
+            WhiteBox.getWhiteBox().getLibcName().contains("musl");
+    private static final boolean isExpandedLoadLibraryPath =
+            TestHelper.isAIX || isMusl;
 
     public ExecutionEnvironment() {
         createTestJar();
@@ -135,22 +147,19 @@ public class ExecutionEnvironment extends TestHelper {
             flagError(tr, "Error: No output at all. Did the test execute ?");
         }
 
-        boolean isExpandedLibPath = TestHelper.isExpandedSharedLibraryPath;
-
         for (String x : LD_PATH_STRINGS) {
             if (!tr.contains(x)) {
-                if (isExpandedLibPath && x.startsWith(LD_LIBRARY_PATH)) {
+                if (isExpandedLoadLibraryPath
+                        && x.startsWith(LD_LIBRARY_PATH)) {
                     // AIX does not support the '-rpath' linker options so the
                     // launchers have to prepend the jdk library path to 'LIBPATH'.
                     // The musl library loader requires LD_LIBRARY_PATH to be set in
                     // order to correctly resolve the dependency libjava.so has on libjvm.so.
-                    String expandedLibPath = String.format("%s=%s%c%s",
-                            LD_LIBRARY_PATH,
-                            System.getenv(LD_LIBRARY_PATH),
-                            File.pathSeparatorChar,
-                            LD_LIBRARY_PATH_VALUE);
-                    if (!tr.matches(expandedLibPath)) {
-                        flagError(tr, "FAIL: did not get <" + expandedLibPath + ">");
+                    String libPath = LD_LIBRARY_PATH + "=" +
+                        System.getenv(LD_LIBRARY_PATH) +
+                        System.getProperty("path.separator") + LD_LIBRARY_PATH_VALUE;
+                    if (!tr.matches(libPath)) {
+                        flagError(tr, "FAIL: did not get <" + libPath + ">");
                     }
                 }
                 else {
