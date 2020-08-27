@@ -75,7 +75,7 @@ class Linux {
   static int commit_memory_impl(char* addr, size_t bytes,
                                 size_t alignment_hint, bool exec);
 
-  static void set_libc_version(const char *s)      { _libc_version = s; }
+  static void set_libc_version(const char *s)       { _libc_version = s; }
   static void set_libpthread_version(const char *s) { _libpthread_version = s; }
 
   static void rebuild_cpu_to_node_map();
@@ -166,7 +166,7 @@ class Linux {
   static bool chained_handler(int sig, siginfo_t* siginfo, void* context);
 
   // GNU libc and libpthread version strings
-  static const char *libc_version()          { return _libc_version; }
+  static const char *libc_version()           { return _libc_version; }
   static const char *libpthread_version()     { return _libpthread_version; }
 
   static void libpthread_init();
