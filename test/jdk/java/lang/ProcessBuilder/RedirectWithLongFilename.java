@@ -26,6 +26,8 @@
  * @bug 8072611
  * @summary ProcessBuilder Redirect to file appending on Windows should work with long file names
  * @author Thomas Stuefe
+ * @comment test library compilation is required by Basic class
+ * @library /test/lib
  */
 
 import java.io.File;
