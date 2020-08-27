@@ -178,8 +178,8 @@ public class TestInheritFD {
             {"/bin/lsof", "-p"},
             {"/sbin/lsof", "-p"},
             {"/usr/local/bin/lsof", "-p"}})
-            .filter(args -> new File(args[0]).exists())
-            .findFirst();
+        .filter(args -> new File(args[0]).exists())
+        .findFirst();
 
     static Optional<String[]> lsofCommand() {
         return lsofCommandCache;
@@ -200,11 +200,11 @@ public class TestInheritFD {
         String lsof = command[0];
         boolean isBusybox = Platform.isBusybox(lsof);
         return fileNames.stream()
-                // lsof from busybox does not support "-p" option
-                .filter(fileName -> !isBusybox || fileName.contains(pid))
-                .filter(fileName -> fileName.contains(LOG_SUFFIX))
-                .findAny()
-                .isPresent();
+            // lsof from busybox does not support "-p" option
+            .filter(fileName -> !isBusybox || fileName.contains(pid))
+            .filter(fileName -> fileName.contains(LOG_SUFFIX))
+            .findAny()
+            .isPresent();
     }
 
     static void windows(File f, long parentPid) throws InterruptedException {
@@ -213,6 +213,5 @@ public class TestInheritFD {
         System.out.println("trying to rename file to the same name: " + f);
         System.out.println(f.renameTo(f) ? RETAINS_FD : LEAKS_FD); // this parts communicates a closed file descriptor by printing "VM RESULT => RETAINS FD"
     }
-
 }
 
