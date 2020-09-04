@@ -101,7 +101,9 @@ public class VMProps implements Callable<Map<String, String>> {
         // vm.hasJFR is "true" if JFR is included in the build of the VM and
         // so tests can be executed.
         map.put("vm.hasJFR", this::vmHasJFR);
+        map.put("vm.jvmti", this::vmHasJVMTI);
         map.put("vm.cpu.features", this::cpuFeatures);
+        map.put("vm.pageSize", this::vmPageSize);
         map.put("vm.rtm.cpu", this::vmRTMCPU);
         map.put("vm.rtm.compiler", this::vmRTMCompiler);
         map.put("vm.aot", this::vmAOT);
@@ -345,6 +347,13 @@ public class VMProps implements Callable<Map<String, String>> {
     }
 
     /**
+     * @return "true" if the VM is compiled with JVMTI
+     */
+    protected String vmHasJVMTI() {
+        return "" + WB.isJVMTIIncluded();
+    }
+
+    /**
      * @return true if compiler in use supports RTM and false otherwise.
      */
     protected String vmRTMCompiler() {
@@ -380,11 +389,6 @@ public class VMProps implements Callable<Map<String, String>> {
 
         if (!Files.exists(jaotc)) {
             // No jaotc => no AOT
-            return "false";
-        }
-
-        if (WB.getBooleanVMFlag("VerifyOops")) {
-            // Should be enabled when JDK-8209961 is fixed
             return "false";
         }
 
@@ -434,6 +438,13 @@ public class VMProps implements Callable<Map<String, String>> {
      */
     protected String vmCDSForArchivedJavaHeap() {
         return "" + ("true".equals(vmCDS()) && WB.isJavaHeapArchiveSupported());
+    }
+
+    /**
+     * @return System page size in bytes.
+     */
+    protected String vmPageSize() {
+        return "" + WB.getVMPageSize();
     }
 
     /**
