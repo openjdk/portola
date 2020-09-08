@@ -276,25 +276,7 @@ class Linux {
 
  public:
   static int sched_getcpu()  { return _sched_getcpu != NULL ? _sched_getcpu() : -1; }
-  static int numa_node_to_cpus(int node, unsigned long *buffer, int bufferlen) {
-    // use the latest version of numa_node_to_cpus if available
-    if (_numa_node_to_cpus_v2 != NULL) {
-
-      // libnuma bitmask struct
-      struct bitmask {
-        unsigned long size; /* number of bits in the map */
-        unsigned long *maskp;
-      };
-
-      struct bitmask mask;
-      mask.maskp = (unsigned long *)buffer;
-      mask.size = bufferlen * 8;
-      return _numa_node_to_cpus_v2(node, &mask);
-    } else if (_numa_node_to_cpus != NULL) {
-      return _numa_node_to_cpus(node, buffer, bufferlen);
-    }
-    return -1;
-  }
+  static int numa_node_to_cpus(int node, unsigned long *buffer, int bufferlen);
   static int numa_max_node() { return _numa_max_node != NULL ? _numa_max_node() : -1; }
   static int numa_num_configured_nodes() {
     return _numa_num_configured_nodes != NULL ? _numa_num_configured_nodes() : -1;

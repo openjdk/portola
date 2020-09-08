@@ -3446,6 +3446,26 @@ void os::Linux::rebuild_cpu_to_node_map() {
   FREE_C_HEAP_ARRAY(unsigned long, cpu_map);
 }
 
+int os::Linux::numa_node_to_cpus(int node, unsigned long *buffer, int bufferlen) {
+  // use the latest version of numa_node_to_cpus if available
+  if (_numa_node_to_cpus_v2 != NULL) {
+
+    // libnuma bitmask struct
+    struct bitmask {
+      unsigned long size; /* number of bits in the map */
+      unsigned long *maskp;
+    };
+
+    struct bitmask mask;
+    mask.maskp = (unsigned long *)buffer;
+    mask.size = bufferlen * 8;
+    return _numa_node_to_cpus_v2(node, &mask);
+  } else if (_numa_node_to_cpus != NULL) {
+    return _numa_node_to_cpus(node, buffer, bufferlen);
+  }
+  return -1;
+}
+
 int os::Linux::get_node_by_cpu(int cpu_id) {
   if (cpu_to_node() != NULL && cpu_id >= 0 && cpu_id < cpu_to_node()->length()) {
     return cpu_to_node()->at(cpu_id);
