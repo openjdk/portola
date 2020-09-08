@@ -25,16 +25,24 @@
  * @test
  * @bug 4780570 4731671 6354700 6367077 6670965 4882974
  * @summary Checks for LD_LIBRARY_PATH and execution  on *nixes
+ * @requires os.family != "windows" & !vm.musl & os.family != "aix"
  * @library /test/lib
  * @modules jdk.compiler
  *          jdk.zipfs
  * @compile -XDignore.symbol.file ExecutionEnvironment.java
- * @build sun.hotspot.WhiteBox
- * @run driver ClassFileInstaller sun.hotspot.WhiteBox
- * @run main/othervm -Xbootclasspath/a:.
- *                   -XX:+UnlockDiagnosticVMOptions
- *                   -XX:+WhiteBoxAPI
- *                   ExecutionEnvironment
+ * @run main/othervm -DexpandedLdLibraryPath=false ExecutionEnvironment
+ */
+
+/*
+ * @test
+ * @bug 4780570 4731671 6354700 6367077 6670965 4882974
+ * @summary Checks for LD_LIBRARY_PATH and execution  on *nixes
+ * @requires os.family == "aix" | vm.musl
+ * @library /test/lib
+ * @modules jdk.compiler
+ *          jdk.zipfs
+ * @compile -XDignore.symbol.file ExecutionEnvironment.java
+ * @run main/othervm -DexpandedLdLibraryPath=true ExecutionEnvironment
  */
 
 /*
@@ -70,8 +78,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import sun.hotspot.WhiteBox;
-
 public class ExecutionEnvironment extends TestHelper {
     static final String LD_LIBRARY_PATH    = Platform.sharedLibraryPathVariableName();
     static final String LD_LIBRARY_PATH_32 = LD_LIBRARY_PATH + "_32";
@@ -90,10 +96,8 @@ public class ExecutionEnvironment extends TestHelper {
 
     static final File testJarFile = new File("EcoFriendly.jar");
 
-    private static final boolean isMusl =
-            WhiteBox.getWhiteBox().getLibcName().contains("musl");
-    private static final boolean isExpandedLoadLibraryPath =
-            TestHelper.isAIX || isMusl;
+    static final boolean IS_EXPANDED_LD_LIBRARY_PATH =
+            Boolean.getBoolean("expandedLdLibraryPath");
 
     public ExecutionEnvironment() {
         createTestJar();
@@ -149,8 +153,7 @@ public class ExecutionEnvironment extends TestHelper {
 
         for (String x : LD_PATH_STRINGS) {
             if (!tr.contains(x)) {
-                if (isExpandedLoadLibraryPath
-                        && x.startsWith(LD_LIBRARY_PATH)) {
+                if (IS_EXPANDED_LD_LIBRARY_PATH && x.startsWith(LD_LIBRARY_PATH)) {
                     // AIX does not support the '-rpath' linker options so the
                     // launchers have to prepend the jdk library path to 'LIBPATH'.
                     // The musl library loader requires LD_LIBRARY_PATH to be set in
@@ -275,10 +278,6 @@ public class ExecutionEnvironment extends TestHelper {
         }
     }
     public static void main(String... args) throws Exception {
-        if (isWindows) {
-            System.err.println("Warning: test not applicable to windows");
-            return;
-        }
         ExecutionEnvironment ee = new ExecutionEnvironment();
         ee.run(args);
     }

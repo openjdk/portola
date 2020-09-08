@@ -26,11 +26,21 @@
  * @bug 7029048 8217340 8217216
  * @summary Ensure that the launcher defends against user settings of the
  *          LD_LIBRARY_PATH environment variable on Unixes
+ * @requires os.family != "windows" & os.family != "mac" & !vm.musl & os.family != "aix"
  * @library /test/lib
  * @compile -XDignore.symbol.file ExecutionEnvironment.java Test7029048.java
- * @build sun.hotspot.WhiteBox
- * @run driver ClassFileInstaller sun.hotspot.WhiteBox
- * @run main/othervm -Xbootclasspath/a:. -XX:+UnlockDiagnosticVMOptions -XX:+WhiteBoxAPI Test7029048
+ * @run main/othervm -DexpandedLdLibraryPath=false Test7029048
+ */
+
+/**
+ * @test
+ * @bug 7029048 8217340 8217216
+ * @summary Ensure that the launcher defends against user settings of the
+ *          LD_LIBRARY_PATH environment variable on Unixes
+ * @requires os.family == "aix" | vm.musl
+ * @library /test/lib
+ * @compile -XDignore.symbol.file ExecutionEnvironment.java Test7029048.java
+ * @run main/othervm -DexpandedLdLibraryPath=true Test7029048
  */
 
 import java.io.File;
@@ -41,14 +51,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import sun.hotspot.WhiteBox;
-
 public class Test7029048 extends TestHelper {
-
-    private static final boolean isMusl =
-            WhiteBox.getWhiteBox().getLibcName().contains("musl");
-    private static final boolean isExpandedLoadLibraryPath =
-            TestHelper.isAIX || isMusl;
 
     private static final String LIBJVM = ExecutionEnvironment.LIBJVM;
     private static final String LD_LIBRARY_PATH =
@@ -67,6 +70,9 @@ public class Test7029048 extends TestHelper {
 
     private static final File dstClientDir = new File(dstLibDir, "client");
     private static final File dstClientLibjvm = new File(dstClientDir, LIBJVM);
+
+    static final boolean IS_EXPANDED_LD_LIBRARY_PATH =
+            Boolean.getBoolean("expandedLdLibraryPath");
 
     static String getValue(String name, List<String> in) {
         for (String x : in) {
@@ -164,7 +170,7 @@ public class Test7029048 extends TestHelper {
                     }
 
                     desc = "LD_LIBRARY_PATH should not be set (no libjvm.so)";
-                    if (isExpandedLoadLibraryPath) {
+                    if (IS_EXPANDED_LD_LIBRARY_PATH) {
                         printSkipMessage(desc);
                         continue;
                     }
@@ -174,7 +180,7 @@ public class Test7029048 extends TestHelper {
                         recursiveDelete(dstLibDir);
                     }
                     desc = "LD_LIBRARY_PATH should not be set (no directory)";
-                    if (isExpandedLoadLibraryPath) {
+                    if (IS_EXPANDED_LD_LIBRARY_PATH) {
                         printSkipMessage(desc);
                         continue;
                     }
@@ -207,10 +213,6 @@ public class Test7029048 extends TestHelper {
     }
 
     public static void main(String... args) throws Exception {
-        if (TestHelper.isWindows || TestHelper.isMacOSX) {
-            System.out.println("Note: applicable on neither Windows nor MacOSX");
-            return;
-        }
         if (!TestHelper.haveServerVM) {
             System.out.println("Note: test relies on server vm, not found, exiting");
             return;
