@@ -5282,32 +5282,8 @@ static void check_pax(void) {
   int res = ::mprotect(p, size, PROT_WRITE|PROT_EXEC);
   if (res == -1) {
     log_debug(os)("os_linux.cpp: check_pax: mprotect failed (%s)" , os::strerror(errno));
-    vm_exit_during_initialization("Failed to mark memory page as executable",
-                                  "Please check if grsecurity/PaX is enabled in your kernel.\n"
-                                  "\n"
-                                  "For example, you can do this by running (note: you may need root privileges):\n"
-                                  "\n"
-                                  "    sysctl kernel.pax.softmode\n"
-                                  "\n"
-                                  "If PaX is included in the kernel you will see something like this:\n"
-                                  "\n"
-                                  "    kernel.pax.softmode = 0\n"
-                                  "\n"
-                                  "In particular, if the value is 0 (zero), then PaX is enabled.\n"
-                                  "\n"
-                                  "PaX includes security functionality which interferes with the dynamic code\n"
-                                  "generation the JVM relies on. Specifically, the MPROTECT functionality as\n"
-                                  "described on https://pax.grsecurity.net/docs/mprotect.txt is not compatible\n"
-                                  "with the JVM. If you want to allow the JVM to run you will have to disable PaX.\n"
-                                  "You can do this on a per-executable basis using the paxctl tool, for example:\n"
-                                  "\n"
-                                  "    paxctl -cm bin/java\n"
-                                  "\n"
-                                  "Please note that this modifies the executable binary in-place, so you may want\n"
-                                  "to make a backup of it first. Also note that you have to repeat this for other\n"
-                                  "executables like javac, jar, jcmd, etc.\n"
-                                  );
-
+    vm_exit_during_initialization(
+      "Failed to mark memory page as executable - check if grsecurity/PaX is enabled");
   }
 
   ::munmap(p, size);
