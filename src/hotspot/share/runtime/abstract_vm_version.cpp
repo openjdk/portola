@@ -258,7 +258,7 @@ const char* Abstract_VM_Version::internal_vm_info_string() {
   #endif
 
   #ifdef MUSL_LIBC
-    #define LIBC_STR "-musl"
+    #define LIBC_STR "-" XSTR(LIBC)
   #else
     #define LIBC_STR ""
   #endif
