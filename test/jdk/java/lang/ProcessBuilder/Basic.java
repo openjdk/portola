@@ -679,8 +679,7 @@ public class Basic {
         private static String path0(){
             if (!Platform.isBusybox("/bin/true")) {
                 return "/bin/true";
-            }
-            else {
+            } else {
                 File trueExe = new File("true");
                 setFileContents(trueExe, "#!/bin/true\n");
                 trueExe.setExecutable(true);
@@ -695,8 +694,7 @@ public class Basic {
         private static String path0(){
             if (!Platform.isBusybox("/bin/false")) {
                 return "/bin/false";
-            }
-            else {
+            } else {
                 File falseExe = new File("false");
                 setFileContents(falseExe, "#!/bin/false\n");
                 falseExe.setExecutable(true);
