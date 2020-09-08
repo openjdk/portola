@@ -111,14 +111,11 @@ public class Platform {
 
     public static boolean isBusybox(String tool) {
         try {
-
-            Path busybox = Paths.get("/bin/busybox");
             Path toolpath = Paths.get(tool);
-
             return !isWindows()
-                    && Files.exists(busybox)
                     && Files.isSymbolicLink(toolpath)
-                    && busybox.equals(Files.readSymbolicLink(toolpath));
+                    && Paths.get("/bin/busybox")
+                        .equals(Files.readSymbolicLink(toolpath));
         } catch (IOException ignore) {
             return false;
         }
