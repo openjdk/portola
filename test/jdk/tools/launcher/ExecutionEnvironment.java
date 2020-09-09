@@ -25,11 +25,24 @@
  * @test
  * @bug 4780570 4731671 6354700 6367077 6670965 4882974
  * @summary Checks for LD_LIBRARY_PATH and execution  on *nixes
+ * @requires os.family != "windows" & !vm.musl & os.family != "aix"
  * @library /test/lib
  * @modules jdk.compiler
  *          jdk.zipfs
  * @compile -XDignore.symbol.file ExecutionEnvironment.java
- * @run main/othervm ExecutionEnvironment
+ * @run main/othervm -DexpandedLdLibraryPath=false ExecutionEnvironment
+ */
+
+/*
+ * @test
+ * @bug 4780570 4731671 6354700 6367077 6670965 4882974
+ * @summary Checks for LD_LIBRARY_PATH and execution  on *nixes
+ * @requires os.family == "aix" | vm.musl
+ * @library /test/lib
+ * @modules jdk.compiler
+ *          jdk.zipfs
+ * @compile -XDignore.symbol.file ExecutionEnvironment.java
+ * @run main/othervm -DexpandedLdLibraryPath=true ExecutionEnvironment
  */
 
 /*
@@ -83,6 +96,9 @@ public class ExecutionEnvironment extends TestHelper {
 
     static final File testJarFile = new File("EcoFriendly.jar");
 
+    static final boolean IS_EXPANDED_LD_LIBRARY_PATH =
+            Boolean.getBoolean("expandedLdLibraryPath");
+
     public ExecutionEnvironment() {
         createTestJar();
     }
@@ -135,22 +151,18 @@ public class ExecutionEnvironment extends TestHelper {
             flagError(tr, "Error: No output at all. Did the test execute ?");
         }
 
-        boolean isExpandedLibPath = TestHelper.isExpandedSharedLibraryPath;
-
         for (String x : LD_PATH_STRINGS) {
             if (!tr.contains(x)) {
-                if (isExpandedLibPath && x.startsWith(LD_LIBRARY_PATH)) {
+                if (IS_EXPANDED_LD_LIBRARY_PATH && x.startsWith(LD_LIBRARY_PATH)) {
                     // AIX does not support the '-rpath' linker options so the
                     // launchers have to prepend the jdk library path to 'LIBPATH'.
                     // The musl library loader requires LD_LIBRARY_PATH to be set in
                     // order to correctly resolve the dependency libjava.so has on libjvm.so.
-                    String expandedLibPath = String.format("%s=%s%c%s",
-                            LD_LIBRARY_PATH,
-                            System.getenv(LD_LIBRARY_PATH),
-                            File.pathSeparatorChar,
-                            LD_LIBRARY_PATH_VALUE);
-                    if (!tr.matches(expandedLibPath)) {
-                        flagError(tr, "FAIL: did not get <" + expandedLibPath + ">");
+                    String libPath = LD_LIBRARY_PATH + "=" +
+                        System.getenv(LD_LIBRARY_PATH) +
+                        System.getProperty("path.separator") + LD_LIBRARY_PATH_VALUE;
+                    if (!tr.matches(libPath)) {
+                        flagError(tr, "FAIL: did not get <" + libPath + ">");
                     }
                 }
                 else {
@@ -266,10 +278,6 @@ public class ExecutionEnvironment extends TestHelper {
         }
     }
     public static void main(String... args) throws Exception {
-        if (isWindows) {
-            System.err.println("Warning: test not applicable to windows");
-            return;
-        }
         ExecutionEnvironment ee = new ExecutionEnvironment();
         ee.run(args);
     }

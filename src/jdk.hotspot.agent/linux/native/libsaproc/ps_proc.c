@@ -279,11 +279,12 @@ static attach_state_t ptrace_attach(pid_t pid, char* err_buf, size_t err_buf_len
         return ATTACH_THREAD_DEAD;
       }
     }
-    char buf[200];
-    if (strerror_r(errno, buf, sizeof(buf) == 0)) {
-      snprintf(err_buf, err_buf_len, "ptrace(PTRACE_ATTACH, ..) failed for %d: %s", pid, buf);
-      print_error("%s\n", err_buf);
-    }
+    // To improve portability across platforms and avoid conflicts
+    // between GNU and XSI versions of strerror_r, plain strerror is used.
+    // It's safe because this code is not used in any multithreaded environment.
+    char* msg = strerror(errno);
+    snprintf(err_buf, err_buf_len, "ptrace(PTRACE_ATTACH, ..) failed for %d: %s", pid, msg);
+    print_error("%s\n", err_buf);
     return ATTACH_FAIL;
   } else {
     attach_state_t wait_ret = ptrace_waitpid(pid);

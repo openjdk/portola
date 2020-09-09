@@ -218,7 +218,13 @@ AC_DEFUN([PLATFORM_EXTRACT_VARS_FROM_OS],
       AC_MSG_ERROR([unsupported operating system $1])
       ;;
   esac
+])
 
+# Support macro for PLATFORM_EXTRACT_TARGET_AND_BUILD.
+# Converts autoconf style OS name to OpenJDK style, into
+# VAR_LIBC.
+AC_DEFUN([PLATFORM_EXTRACT_VARS_FROM_LIBC],
+[
   case "$1" in
     *linux*-musl)
       VAR_LIBC=musl
@@ -249,9 +255,10 @@ AC_DEFUN([PLATFORM_EXTRACT_TARGET_AND_BUILD],
   AC_SUBST(OPENJDK_TARGET_AUTOCONF_NAME)
   AC_SUBST(OPENJDK_BUILD_AUTOCONF_NAME)
 
-  # Convert the autoconf OS/CPU value to our own data, into the VAR_OS/CPU variables.
+  # Convert the autoconf OS/CPU value to our own data, into the VAR_OS/CPU/LIBC variables.
   PLATFORM_EXTRACT_VARS_FROM_OS($build_os)
   PLATFORM_EXTRACT_VARS_FROM_CPU($build_cpu)
+  PLATFORM_EXTRACT_VARS_FROM_LIBC($build_os)
   # ..and setup our own variables. (Do this explicitly to facilitate searching)
   OPENJDK_BUILD_OS="$VAR_OS"
   if test "x$VAR_OS_TYPE" != x; then
@@ -286,9 +293,10 @@ AC_DEFUN([PLATFORM_EXTRACT_TARGET_AND_BUILD],
     AC_MSG_RESULT([$OPENJDK_BUILD_LIBC])
   fi
 
-  # Convert the autoconf OS/CPU value to our own data, into the VAR_OS/CPU variables.
+  # Convert the autoconf OS/CPU value to our own data, into the VAR_OS/CPU/LIBC variables.
   PLATFORM_EXTRACT_VARS_FROM_OS($host_os)
   PLATFORM_EXTRACT_VARS_FROM_CPU($host_cpu)
+  PLATFORM_EXTRACT_VARS_FROM_LIBC($host_os)
   # ... and setup our own variables. (Do this explicitly to facilitate searching)
   OPENJDK_TARGET_OS="$VAR_OS"
   if test "x$VAR_OS_TYPE" != x; then
@@ -448,7 +456,7 @@ AC_DEFUN([PLATFORM_SETUP_LEGACY_VARS_HELPER],
   fi
 
   OPENJDK_$1_LIBC_BUNDLE=""
-  if test "x$OPENJDK_$1_LIBC" = "xmusl"; then  
+  if test "x$OPENJDK_$1_LIBC" = "xmusl"; then
     OPENJDK_$1_LIBC_BUNDLE="-$OPENJDK_$1_LIBC"
   fi
 
@@ -557,9 +565,11 @@ AC_DEFUN([PLATFORM_SET_RELEASE_FILE_OS_VALUES],
     RELEASE_FILE_OS_NAME="AIX"
   fi
   RELEASE_FILE_OS_ARCH=${OPENJDK_TARGET_CPU}
+  RELEASE_FILE_LIBC=${OPENJDK_TARGET_LIBC}
 
   AC_SUBST(RELEASE_FILE_OS_NAME)
   AC_SUBST(RELEASE_FILE_OS_ARCH)
+  AC_SUBST(RELEASE_FILE_LIBC)
 ])
 
 AC_DEFUN([PLATFORM_SET_MODULE_TARGET_OS_VALUES],

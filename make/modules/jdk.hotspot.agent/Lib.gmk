@@ -48,8 +48,6 @@ else ifeq ($(call isTargetOs, windows), true)
   endif
 endif
 
-SA_CFLAGS += -DLIBC=\"$(OPENJDK_TARGET_LIBC)\"
-
 SA_TOOLCHAIN := $(TOOLCHAIN_DEFAULT)
 ifeq ($(call isTargetOs, linux), true)
   SA_TOOLCHAIN := TOOLCHAIN_LINK_CXX

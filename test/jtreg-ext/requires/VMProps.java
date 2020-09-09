@@ -23,11 +23,9 @@
 package requires;
 
 import java.io.BufferedInputStream;
-import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -518,23 +516,12 @@ public class VMProps implements Callable<Map<String, String>> {
     }
 
     /**
-     * Check if we run with musl libc.
+     * Checks musl libc.
      *
-     * @return true if we run with musl libc.
+     * @return true if musl libc is used.
      */
     protected String isMusl() {
-        try {
-            ProcessBuilder pb = new ProcessBuilder("ldd", "--version");
-            pb.redirectErrorStream(true);
-            final Process p = pb.start();
-            BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
-            String line = br.readLine();
-            if (line != null && line.contains("musl")) {
-                return "true";
-            }
-        } catch (Exception e) {
-        }
-        return "false";
+        return Boolean.toString(WB.getLibcName().contains("musl"));
     }
 
     private String implementor() {

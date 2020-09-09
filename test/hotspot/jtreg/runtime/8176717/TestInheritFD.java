@@ -30,6 +30,7 @@ import static java.util.stream.Collectors.toList;
 import static jdk.test.lib.process.ProcessTools.createJavaProcessBuilder;
 import static jdk.test.lib.Platform.isWindows;
 import jdk.test.lib.Utils;
+import jdk.test.lib.Platform;
 import jtreg.SkippedException;
 
 import java.io.BufferedReader;
@@ -119,13 +120,12 @@ public class TestInheritFD {
                 "-Dtest.jdk=" + getProperty("test.jdk"),
                 VMShouldNotInheritFileDescriptors.class.getName(),
                 args[0],
-                getPid());
+                "" + ProcessHandle.current().pid());
             pb.inheritIO(); // in future, redirect information from third VM to first VM
             pb.start();
 
             if (!isWindows()) {
-                System.out.printf("(Second VM) Open file descriptors: %s%n",
-                        outputContainingFilenames().stream().collect(joining("\n")));
+                System.out.println("(Second VM) Open file descriptors:\n" + outputContainingFilenames().stream().collect(joining("\n")));
             }
         }
     }
@@ -172,35 +172,36 @@ public class TestInheritFD {
         }
     }
 
-    static Optional<Command> lsofCommandCache = stream(new Command[]{
-            new Command("/usr/bin/lsof", "-p"),
-            new Command("/usr/sbin/lsof", "-p"),
-            new Command("/bin/lsof", "-p"),
-            new Command("/sbin/lsof", "-p"),
-            new Command("/usr/local/bin/lsof", "-p"),
-        })
-        .filter(command -> command.exists())
+    static Optional<String[]> lsofCommandCache = stream(new String[][]{
+            {"/usr/bin/lsof", "-p"},
+            {"/usr/sbin/lsof", "-p"},
+            {"/bin/lsof", "-p"},
+            {"/sbin/lsof", "-p"},
+            {"/usr/local/bin/lsof", "-p"}})
+        .filter(args -> new File(args[0]).exists())
         .findFirst();
 
-    static Optional<Command> lsofCommand() {
+    static Optional<String[]> lsofCommand() {
         return lsofCommandCache;
     }
 
-    static Command lsofCmd() {
-        return lsofCommand().orElseThrow(() -> new RuntimeException("lsof like command not found"));
-    }
-
     static Collection<String> outputContainingFilenames() {
-        String pid = getPid();
-        Command command = lsofCmd();
-        System.out.printf("using command: %s%n", command);
-        return run(command.name, command.option, pid)
-                .filter(line -> line.contains(pid))
-                .collect(toList());
+        long pid = ProcessHandle.current().pid();
+
+        String[] command = lsofCommand().orElseThrow(() -> new RuntimeException("lsof like command not found"));
+        System.out.println("using command: " + command[0] + " " + command[1]);
+        return run(command[0], command[1], "" + pid).collect(toList());
     }
 
     static boolean findOpenLogFile(Collection<String> fileNames) {
+        String pid = Long.toString(ProcessHandle.current().pid());
+        String[] command = lsofCommand().orElseThrow(() ->
+                new RuntimeException("lsof like command not found"));
+        String lsof = command[0];
+        boolean isBusybox = Platform.isBusybox(lsof);
         return fileNames.stream()
+            // lsof from busybox does not support "-p" option
+            .filter(fileName -> !isBusybox || fileName.contains(pid))
             .filter(fileName -> fileName.contains(LOG_SUFFIX))
             .findAny()
             .isPresent();
@@ -211,29 +212,6 @@ public class TestInheritFD {
         ProcessHandle.of(parentPid).ifPresent(handle -> handle.onExit().join());
         System.out.println("trying to rename file to the same name: " + f);
         System.out.println(f.renameTo(f) ? RETAINS_FD : LEAKS_FD); // this parts communicates a closed file descriptor by printing "VM RESULT => RETAINS FD"
-    }
-
-    private static String getPid() {
-        return Long.toString(ProcessHandle.current().pid());
-    }
-
-    private static class Command {
-        private final String name;
-        private final String option;
-
-        public Command(String name, String option) {
-            this.name = name;
-            this.option = option;
-        }
-
-        private boolean exists() {
-            return new File(name).exists();
-        }
-
-        public String toString() {
-            return String.format("[name: %s, option: %s]",
-                    name, option);
-        }
     }
 }
 
