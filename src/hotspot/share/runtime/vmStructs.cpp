@@ -338,9 +338,9 @@ typedef HashtableEntry<InstanceKlass*, mtClass>  KlassHashtableEntry;
   volatile_nonstatic_field(ConstantPoolCacheEntry,      _f2,                                  intx)                                  \
   volatile_nonstatic_field(ConstantPoolCacheEntry,      _flags,                               intx)                                  \
                                                                                                                                      \
-  /********************************/                                                                                                 \
-  /* MethodOop-related structures */                                                                                                 \
-  /********************************/                                                                                                 \
+  /*****************************/                                                                                                    \
+  /* Method related structures */                                                                                                    \
+  /*****************************/                                                                                                    \
                                                                                                                                      \
   nonstatic_field(CheckedExceptionElement,     class_cp_index,                                u2)                                    \
   nonstatic_field(LocalVariableTableElement,   start_bci,                                     u2)                                    \
@@ -1008,7 +1008,7 @@ typedef HashtableEntry<InstanceKlass*, mtClass>  KlassHashtableEntry;
   /* -XX flags         */                                                                                                            \
   /*********************/                                                                                                            \
                                                                                                                                      \
-  nonstatic_field(JVMFlag,                     _type,                                         const char*)                           \
+  nonstatic_field(JVMFlag,                     _type,                                         int)                                   \
   nonstatic_field(JVMFlag,                     _name,                                         const char*)                           \
   unchecked_nonstatic_field(JVMFlag,           _addr,                                         sizeof(void*)) /* NOTE: no type */     \
   nonstatic_field(JVMFlag,                     _flags,                                        JVMFlag::Flags)                        \
@@ -1284,9 +1284,9 @@ typedef HashtableEntry<InstanceKlass*, mtClass>  KlassHashtableEntry;
                                                                           \
   declare_toplevel_type(OopHandle)                                        \
                                                                           \
-  /*************************************/                                 \
-  /* MethodOop-related data structures */                                 \
-  /*************************************/                                 \
+  /**********************************/                                    \
+  /* Method related data structures */                                    \
+  /**********************************/                                    \
                                                                           \
   declare_toplevel_type(CheckedExceptionElement)                          \
   declare_toplevel_type(LocalVariableTableElement)                        \
@@ -1842,6 +1842,10 @@ typedef HashtableEntry<InstanceKlass*, mtClass>  KlassHashtableEntry;
   declare_c2_type(OverflowMulLNode, OverflowLNode)                        \
   declare_c2_type(FmaDNode, Node)                                         \
   declare_c2_type(FmaFNode, Node)                                         \
+  declare_c2_type(CopySignDNode, Node)                                    \
+  declare_c2_type(CopySignFNode, Node)                                    \
+  declare_c2_type(SignumDNode, Node)                                      \
+  declare_c2_type(SignumFNode, Node)                                      \
                                                                           \
   /*********************/                                                 \
   /* Adapter Blob Entries */                                              \

@@ -453,10 +453,10 @@ ciKlass* ciEnv::get_klass_by_name_impl(ciKlass* accessing_klass,
     Klass* kls;
     if (!require_local) {
       kls = SystemDictionary::find_constrained_instance_or_array_klass(sym, loader,
-                                                                       KILL_COMPILE_ON_FATAL_(fail_type));
+                                                                       CHECK_AND_CLEAR_(fail_type));
     } else {
       kls = SystemDictionary::find_instance_or_array_klass(sym, loader, domain,
-                                                           KILL_COMPILE_ON_FATAL_(fail_type));
+                                                           CHECK_AND_CLEAR_(fail_type));
     }
     found_klass = kls;
   }
@@ -761,7 +761,7 @@ Method* ciEnv::lookup_method(ciInstanceKlass* accessor,
   InstanceKlass* accessor_klass = accessor->get_instanceKlass();
   Klass* holder_klass = holder->get_Klass();
   Method* dest_method;
-  LinkInfo link_info(holder_klass, name, sig, accessor_klass, LinkInfo::AccessCheck::required, tag);
+  LinkInfo link_info(holder_klass, name, sig, accessor_klass, LinkInfo::AccessCheck::required, LinkInfo::LoaderConstraintCheck::required, tag);
   switch (bc) {
   case Bytecodes::_invokestatic:
     dest_method =
