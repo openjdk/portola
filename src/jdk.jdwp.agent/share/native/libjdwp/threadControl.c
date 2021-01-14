@@ -84,6 +84,9 @@ typedef struct ThreadNode {
     struct ThreadNode *prev;
     jlong frameGeneration;
     struct ThreadList *list;  /* Tells us what list this thread is in */
+#ifdef DEBUG_THREADNAME
+    char name[256];
+#endif
 } ThreadNode;
 
 static jint suspendAllCount;
@@ -348,6 +351,22 @@ insertThread(JNIEnv *env, ThreadList *list, jthread thread)
         node->instructionStepMode = JVMTI_DISABLE;
         node->eventBag = eventBag;
         addNode(list, node);
+
+#ifdef DEBUG_THREADNAME
+        {
+            /* Set the thread name */
+            jvmtiThreadInfo info;
+            jvmtiError error;
+
+            memset(&info, 0, sizeof(info));
+            error = JVMTI_FUNC_PTR(gdata->jvmti,GetThreadInfo)
+                    (gdata->jvmti, node->thread, &info);
+            if (info.name != NULL) {
+                strncpy(node->name, info.name, sizeof(node->name) - 1);
+                jvmtiDeallocate(info.name);
+            }
+        }
+#endif
 
         /* Set thread local storage for quick thread -> node access.
          *   Some threads may not be in a state that allows setting of TLS,
@@ -1534,6 +1553,12 @@ threadControl_suspendAll(void)
         }
 
         if (error == JVMTI_ERROR_NONE) {
+            /*
+             * Pin all objects to prevent objects from being
+             * garbage collected while the VM is suspended.
+             */
+            commonRef_pinAll();
+
             suspendAllCount++;
         }
 
@@ -1585,6 +1610,11 @@ threadControl_resumeAll(void)
     }
 
     if (suspendAllCount > 0) {
+        /*
+         * Unpin all objects.
+         */
+        commonRef_unpinAll();
+
         suspendAllCount--;
     }
 
