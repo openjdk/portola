@@ -47,6 +47,8 @@ bool ShenandoahBarrierC2Support::expand(Compile* C, PhaseIterGVN& igvn) {
   ShenandoahBarrierSetC2State* state = ShenandoahBarrierSetC2::bsc2()->state();
   if ((state->enqueue_barriers_count() +
        state->load_reference_barriers_count()) > 0) {
+    assert(C->post_loop_opts_phase(), "no loop opts allowed");
+    C->reset_post_loop_opts_phase(); // ... but we know what we are doing
     bool attempt_more_loopopts = ShenandoahLoopOptsAfterExpansion;
     C->clear_major_progress();
     PhaseIdealLoop::optimize(igvn, LoopOptsShenandoahExpand);
@@ -59,7 +61,10 @@ bool ShenandoahBarrierC2Support::expand(Compile* C, PhaseIterGVN& igvn) {
         return false;
       }
       C->clear_major_progress();
+
+      C->process_for_post_loop_opts_igvn(igvn);
     }
+    C->set_post_loop_opts_phase(); // now for real!
   }
   return true;
 }
@@ -2280,7 +2285,7 @@ void MemoryGraphFixer::collect_memory_nodes() {
   uint last = _phase->C->unique();
 
 #ifdef ASSERT
-  uint8_t max_depth = 0;
+  uint16_t max_depth = 0;
   for (LoopTreeIterator iter(_phase->ltree_root()); !iter.done(); iter.next()) {
     IdealLoopTree* lpt = iter.current();
     max_depth = MAX2(max_depth, lpt->_nest);
