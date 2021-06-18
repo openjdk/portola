@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -21,17 +21,10 @@
  * questions.
  */
 
-#include <jni.h>
-#include <windows.h>
+package jdk.test.failurehandler;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+import java.nio.file.Path;
 
-JNIEXPORT jlong JNICALL Java_jdk_test_failurehandler_jtreg_GatherProcessInfoTimeoutHandler_getWin32Pid
-        (JNIEnv* env, jobject o, jlong handle) {
-    return GetProcessId((HANDLE) handle);
+public interface CoreInfoGatherer {
+    void gatherCoreInfo(HtmlSection section, Path core);
 }
-#ifdef __cplusplus
-}
-#endif
