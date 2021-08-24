@@ -32,7 +32,7 @@
 #include "oops/arrayKlass.hpp"
 #include "oops/arrayOop.hpp"
 #include "oops/compressedOops.inline.hpp"
-#include "oops/markWord.inline.hpp"
+#include "oops/markWord.hpp"
 #include "oops/oopsHierarchy.hpp"
 #include "runtime/atomic.hpp"
 #include "runtime/globals.hpp"
@@ -46,6 +46,11 @@
 
 markWord oopDesc::mark() const {
   uintptr_t v = HeapAccess<MO_RELAXED>::load_at(as_oop(), mark_offset_in_bytes());
+  return markWord(v);
+}
+
+markWord oopDesc::mark_acquire() const {
+  uintptr_t v = HeapAccess<MO_ACQUIRE>::load_at(as_oop(), mark_offset_in_bytes());
   return markWord(v);
 }
 
@@ -75,7 +80,7 @@ markWord oopDesc::cas_set_mark(markWord new_mark, markWord old_mark, atomic_memo
 }
 
 void oopDesc::init_mark() {
-  set_mark(markWord::prototype_for_klass(klass()));
+  set_mark(markWord::prototype());
 }
 
 Klass* oopDesc::klass() const {
@@ -234,7 +239,6 @@ inline jshort oopDesc::short_field(int offset) const                { return Hea
 inline void   oopDesc::short_field_put(int offset, jshort value)    { HeapAccess<>::store_at(as_oop(), offset, value); }
 
 inline jint oopDesc::int_field(int offset) const                    { return HeapAccess<>::load_at(as_oop(), offset);  }
-inline jint oopDesc::int_field_raw(int offset) const                { return RawAccess<>::load_at(as_oop(), offset);   }
 inline void oopDesc::int_field_put(int offset, jint value)          { HeapAccess<>::store_at(as_oop(), offset, value); }
 
 inline jlong oopDesc::long_field(int offset) const                  { return HeapAccess<>::load_at(as_oop(), offset);  }
@@ -252,10 +256,6 @@ bool oopDesc::is_locked() const {
 
 bool oopDesc::is_unlocked() const {
   return mark().is_unlocked();
-}
-
-bool oopDesc::has_bias_pattern() const {
-  return mark().has_bias_pattern();
 }
 
 // Used only for markSweep, scavenging
